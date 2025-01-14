@@ -1,0 +1,9 @@
+.root {
+  box-shadow: var(--mantine-shadow-xs);
+  transition: box-shadow 100ms ease;
+}
+
+.root:hover {
+  box-shadow: var(--mantine-shadow-sm);
+  cursor: pointer;
+}
