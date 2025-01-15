@@ -121,7 +121,6 @@ export const ModifyTexts = () => {
                     >
                       <Group gap={8}>
                         <FileButton
-                          accept="text/plain"
                           onChange={(file) => handleUploadTextFile(file, index)}
                         >
                           {(props) => (
