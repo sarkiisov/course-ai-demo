@@ -6,16 +6,17 @@ import {
   Group,
   Loader,
   Paper,
+  ScrollArea,
   Stack,
-  Text,
   Tooltip,
   Transition,
 } from '@mantine/core'
 import { useCourseAddFormContext } from '../context'
 import { FileItem } from '../../FileItem'
 import { IconDownload, IconFilePencil } from '@tabler/icons-react'
-import { downloadTextFile, splitByLastDot } from '../../../utils'
 import { useMemo, useState } from 'react'
+import { fileResponses } from '../../../consts'
+import { downloadBlob, splitByLastDot } from '../../../utils'
 
 export const ModifyTexts = () => {
   const {
@@ -25,10 +26,28 @@ export const ModifyTexts = () => {
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
+  const [fileVersions, setFileVersions] = useState<number[]>(
+    new Array(course.rawFiles.length).fill(1)
+  )
+
   const handleUploadTextFile = async (file: File | null, index: number) => {
     if (!file) return
 
-    const nextText = await file.text()
+    const currentFileName = course.rawFiles[index].name
+
+    let nextText = course.texts[index]
+
+    if (fileResponses[currentFileName][1]) {
+      nextText = fileResponses[currentFileName][1]
+    }
+
+    setFileVersions((versions) => {
+      const nextVersions = [...versions]
+
+      nextVersions[index] = nextVersions[index] + 1
+
+      return nextVersions
+    })
 
     setCourse((course) => {
       const nextTexts = [...course.texts]
@@ -45,6 +64,18 @@ export const ModifyTexts = () => {
     await onSubmit(course)
 
     setIsSubmitting(false)
+  }
+
+  const handleFileDownload = async (index: number) => {
+    const fileName = splitByLastDot(course.rawFiles[index].name)[0]
+
+    const response = await fetch(
+      `/files/${fileName}_${fileVersions[index]}.docx`
+    )
+
+    const blob = await response.blob()
+
+    downloadBlob(blob, `text_${fileName}_${fileVersions[index]}.docx`)
   }
 
   const submitDisabled = useMemo(() => {
@@ -72,7 +103,13 @@ export const ModifyTexts = () => {
                         zIndex: 1,
                       }}
                     >
-                      <Text lineClamp={2}>{course.texts[index]}</Text>
+                      <ScrollArea h={200}>
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: course.texts[index],
+                          }}
+                        />
+                      </ScrollArea>
                     </Box>
                     <Paper
                       display="flex"
@@ -100,12 +137,7 @@ export const ModifyTexts = () => {
                         <Tooltip label="Скачать текст">
                           <ActionIcon
                             variant="subtle"
-                            onClick={() =>
-                              downloadTextFile(
-                                course.texts[index],
-                                `text_${splitByLastDot(file.name)[0]}`
-                              )
-                            }
+                            onClick={() => handleFileDownload(index)}
                           >
                             <IconDownload
                               style={{ width: '70%', height: '70%' }}

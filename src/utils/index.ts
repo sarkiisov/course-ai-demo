@@ -40,9 +40,7 @@ export const splitByLastDot = (str: string) => {
   return [before, after]
 }
 
-export const downloadTextFile = (text: string, fileName: string) => {
-  const blob = new Blob([text], { type: 'text/plain' })
-
+export const downloadBlob = (blob: Blob, fileName: string) => {
   const link = document.createElement('a')
 
   link.href = URL.createObjectURL(blob)
@@ -54,4 +52,10 @@ export const downloadTextFile = (text: string, fileName: string) => {
 
   document.body.removeChild(link)
   URL.revokeObjectURL(link.href)
+}
+
+export const downloadTextFile = (text: string, fileName: string) => {
+  const blob = new Blob([text], { type: 'text/plain' })
+
+  downloadBlob(blob, fileName)
 }

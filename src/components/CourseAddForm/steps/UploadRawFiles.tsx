@@ -3,7 +3,8 @@ import { Dropzone } from '../../Dropzone'
 import { FileItem } from '../../FileItem'
 import { IconArrowRight, IconTrash } from '@tabler/icons-react'
 import { useCourseAddFormContext } from '../context'
-import { getRandomLorem, withRandomDelay } from '../../../utils'
+import { withRandomDelay } from '../../../utils'
+import { fileResponses } from '../../../consts'
 
 export const UploadRawFiles = () => {
   const {
@@ -12,9 +13,12 @@ export const UploadRawFiles = () => {
   } = useCourseAddFormContext()
 
   const handleRawFilesUpload = (files: File[]) => {
+    const filterdFiles = files.filter((file) =>
+      Object.keys(fileResponses).includes(file.name)
+    )
     setCourse((course) => ({
       ...course,
-      rawFiles: [...course.rawFiles, ...files],
+      rawFiles: [...course.rawFiles, ...filterdFiles],
     }))
   }
 
@@ -29,12 +33,14 @@ export const UploadRawFiles = () => {
   }
 
   const handleRawFilesSubmit = () => {
-    course.rawFiles.forEach((_, index) => {
+    course.rawFiles.forEach((file, index) => {
       withRandomDelay(() => {
         setCourse((course) => {
           const nextTexts = [...course.texts]
 
-          nextTexts[index] = getRandomLorem(40, 60)
+          const nextText = fileResponses[file.name]?.[0] ?? ''
+
+          nextTexts[index] = nextText
 
           return { ...course, texts: nextTexts }
         })
